@@ -93,7 +93,6 @@ result_t bench_scalar() {
 			SolvePositionConstraints(count, pc_array, positions);
 		clock_t end = clock();
 		times[i] = end - start;
-		printf("%f\n", (float)times[i]);
 	}
 
 	float32 checksum = 0.0;
@@ -174,7 +173,6 @@ result_t bench_simd() {
 			SolvePositionConstraintsSIMD(count, &pc);
 		clock_t end = clock();
 		times[i] = end - start;
-		printf("%f\n", (float)times[i]);
 	}
 
 	float32 checksum = 0.0;
@@ -233,7 +231,6 @@ result_t bench_vector() {
 			SolvePositionConstraintsVector(count, pc_array, positions);
 		clock_t end = clock();
 		times[i] = end - start;
-		printf("%f\n", (float)times[i]);
 	}
 
 	float32 checksum = 0.0;
@@ -252,8 +249,8 @@ int main(int argc, char** argv) {
   result_t result = bench_scalar();
   printf("Scalar benchmark complete.\n  ms/frame: %f 5th %%ile: %f 95th %%ile: %f\n", result.mean, result.pc_5th, result.pc_95th);
 
-  //result_t result_simd = bench_simd();
-  //printf("SIMD benchmark complete.\n  ms/frame: %f 5th %%ile: %f 95th %%ile: %f\n", result_simd.mean, result_simd.pc_5th, result_simd.pc_95th);
+  result_t result_simd = bench_simd();
+  printf("SIMD benchmark complete.\n  ms/frame: %f 5th %%ile: %f 95th %%ile: %f\n", result_simd.mean, result_simd.pc_5th, result_simd.pc_95th);
 
   result_t result_vector = bench_vector();
   printf("Vector benchmark complete.\n  ms/frame: %f 5th %%ile: %f 95th %%ile: %f\n", result_vector.mean, result_vector.pc_5th, result_vector.pc_95th);

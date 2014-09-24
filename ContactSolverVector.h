@@ -29,9 +29,9 @@ struct b2PositionVector
 
 inline float32x4 b2RotateVector(const float32x4& q, const float32x4& v)
 {
-	float32x4 tmp = {-1, 1, 0, 0};
-	return __builtin_shufflevector(q, q, 1, 0, -1, -1) * __builtin_shufflevector(v, v, 0, 0, -1, -1)
-	       + q * __builtin_shufflevector(v, v, 1, 1, -1, -1) * tmp;
+	float32x4 tmp = {0, 1, 0, 0};
+	return __builtin_shufflevector(q, q, 1, 0, 0, 0) * __builtin_shufflevector(v, v, 0, 0, 0, 0)
+	       + q * __builtin_shufflevector(v, v, 1, 1, 0, 0) * tmp;
 }
 
 inline float32x4 b2MulTransformVector(const float32x4& q, const float32x4& p, const float32x4& v)
@@ -48,7 +48,7 @@ inline float32 b2NormalizeVector(float32x4& v)
 		return 0.0f;
 	}
 	float32 invLength = 1.0f / length;
-	float32x4 invLengthx2 = {invLength, invLength, -1, -1};
+	float32x4 invLengthx2 = {invLength, invLength, 0, 0};
 	v *= invLengthx2;
 
 	return length;
@@ -62,7 +62,7 @@ inline float32 b2DotVector(const float32x4& a, const float32x4& b)
 
 inline float32 b2CrossVector(const float32x4& a, const float32x4& b)
 {
-	float32x4 tmp = a * __builtin_shufflevector(b, b, 1, 0, -1, -1);
+	float32x4 tmp = a * __builtin_shufflevector(b, b, 1, 0, 0, 0);
 	return tmp[0] - tmp[1];
 }
 
@@ -150,8 +150,8 @@ bool SolvePositionConstraintsVector(
 		// Solve normal constraints
 		for (int32 j = 0; j < pointCount; ++j)
 		{
-			float32x4 xfA_q = {sinf(aA), cosf(aA), -1, -1};
-			float32x4 xfB_q = {sinf(aB), cosf(aB), -1, -1};
+			float32x4 xfA_q = {sinf(aA), cosf(aA), 0, 0};
+			float32x4 xfB_q = {sinf(aB), cosf(aB), 0, 0};
 			float32x4 xfA_p = cA - b2RotateVector(xfA_q, localCenterA);
 			float32x4 xfB_p = cB - b2RotateVector(xfB_q, localCenterB);
 
