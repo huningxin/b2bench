@@ -10,6 +10,7 @@
 
 #define WARMUP 2
 #define FRAMES 64
+#define ITERATIONS 1
 
 #define COUNT 20000
 
@@ -53,14 +54,29 @@ result_t measure(clock_t times[FRAMES]) {
 result_t bench_scalar() {
 	int32 count = COUNT;
 	b2ContactPositionConstraint pc_array[COUNT];
-	b2Position positions[2];
+	b2Position positions[COUNT];
 
 	for (int32 i = 0; i < COUNT; ++i) {
 		b2ContactPositionConstraint* pc = pc_array + i;
-		pc->indexA = 0;
-		pc->indexB = 0;
-		pc->pointCount = 2;
+		pc->indexA = i;
+		pc->indexB = i;
+		pc->pointCount = 1;
 		pc->type = b2Manifold::e_faceA;
+		pc->localPoints[0] = b2Vec2(i, i);
+		pc->localNormal = b2Vec2(i, i);
+		pc->localPoint = b2Vec2(i, i);
+		pc->invMassA = i;
+		pc->invMassB = i;
+		pc->localCenterA = b2Vec2(i, i);
+		pc->localCenterB = b2Vec2(i, i);
+		pc->invIA = i;
+		pc->invIB = i;
+		pc->radiusA = i;
+		pc->radiusB = i;
+
+		b2Position* p = positions + i;
+		p->c = b2Vec2(i, i);
+		p->a = i;
 	}
 
 	printf("warming...\n");
@@ -72,12 +88,21 @@ result_t bench_scalar() {
 	clock_t times[FRAMES]; 
 	for (int32 i = 0; i < FRAMES; ++i) {
 		clock_t start = clock();
-		for(int32 j = 0; j < 10; ++j)
-		SolvePositionConstraints(count, pc_array, positions);
+		for(int32 j = 0; j < ITERATIONS; ++j)
+			SolvePositionConstraints(count, pc_array, positions);
 		clock_t end = clock();
 		times[i] = end - start;
-		printf("%f\n", (float)times[i] / CLOCKS_PER_SEC * 1000);
+		printf("%f\n", (float)times[i]);
 	}
+
+	float32 checksum = 0.0;
+	for (int32 i = 0; i < COUNT; ++i) {
+		b2Position* p = positions + i;
+		checksum += p->c.x;
+		checksum += p->c.y;
+		checksum += p->a;
+	}
+	printf("checksum: %f\n", checksum);
 
   return measure(times);
 }
@@ -86,9 +111,9 @@ result_t bench_simd() {
 	int32 count = COUNT;
 	b2ContactPositionConstraintSIMD pc;
 	pc.type = b2Manifold::e_faceA;
-	pc.pointCount = 2;
-	pc.localPoints_x = new float32[COUNT * pc.pointCount];
-	pc.localPoints_y = new float32[COUNT * pc.pointCount];
+	pc.pointCount = 1;
+	pc.localPoints_x = new float32[COUNT];
+	pc.localPoints_y = new float32[COUNT];
 	pc.localNormal_x = new float32[COUNT];
 	pc.localNormal_y = new float32[COUNT];
 	pc.localPoint_x = new float32[COUNT];
@@ -110,6 +135,31 @@ result_t bench_simd() {
 	pc.positionB_y = new float32[COUNT];
 	pc.positionB_a = new float32[COUNT];
 
+	for (int32 i = 0; i < COUNT; ++i) {
+		pc.localPoints_x[i] = i;
+		pc.localPoints_y[i] = i;
+		pc.localNormal_x[i] = i;
+		pc.localNormal_y[i] = i;
+		pc.localPoint_x[i] = i;
+		pc.localPoint_y[i] = i;
+		pc.invMassA[i] = i;
+		pc.invMassB[i] = i;
+		pc.localCenterA_x[i] = i;
+		pc.localCenterA_y[i] = i;
+		pc.localCenterB_x[i] = i;
+		pc.localCenterB_y[i] = i;
+		pc.invIA[i] = i;
+		pc.invIB[i] = i;
+		pc.radiusA[i] = i;
+		pc.radiusB[i] = i;
+		pc.positionA_x[i] = i;
+		pc.positionA_y[i] = i;
+		pc.positionA_a[i] = i;
+		pc.positionB_x[i] = i;
+		pc.positionB_y[i] = i;
+		pc.positionB_a[i] = i;
+	}
+
 	printf("warming...\n");
 	for (int32 i = 0; i < WARMUP; ++i) {
 		SolvePositionConstraintsSIMD(count, &pc);
@@ -119,12 +169,23 @@ result_t bench_simd() {
 	clock_t times[FRAMES]; 
 	for (int32 i = 0; i < FRAMES; ++i) {
 		clock_t start = clock();
-		for(int32 j = 0; j < 10; ++j)
-		SolvePositionConstraintsSIMD(count, &pc);
+		for(int32 j = 0; j < ITERATIONS; ++j)
+			SolvePositionConstraintsSIMD(count, &pc);
 		clock_t end = clock();
 		times[i] = end - start;
 		printf("%f\n", (float)times[i]);
 	}
+
+	float32 checksum = 0.0;
+	for (int32 i = 0; i < COUNT; ++i) {
+		checksum += pc.positionA_x[i];
+		checksum += pc.positionA_y[i];
+		checksum += pc.positionA_a[i];
+		checksum += pc.positionB_x[i];
+		checksum += pc.positionB_y[i];
+		checksum += pc.positionB_a[i];
+	}
+	printf("checksum: %f\n", checksum);
 
   return measure(times);
 }

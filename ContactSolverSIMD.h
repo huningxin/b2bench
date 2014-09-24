@@ -139,8 +139,8 @@ float32 SolvePositionConstraintsSIMD(int32 count, b2ContactPositionConstraintSIM
 
 				// b2Vec2 clipPoint = b2Mul(xfB, pc->localPoints[index]);
 				__m128 clipPoint_x4, clipPoint_y4;
-				__m128 localPoints_x4 = _mm_loadu_ps(pc->localPoints_x + i * j);
-				__m128 localPoints_y4 = _mm_loadu_ps(pc->localPoints_y + i * j);
+				__m128 localPoints_x4 = _mm_loadu_ps(pc->localPoints_x + i + j);
+				__m128 localPoints_y4 = _mm_loadu_ps(pc->localPoints_y + i + j);
 				
 				clipPoint_x4 = _mm_add_ps(_mm_sub_ps(_mm_mul_ps(xfB_q_c4, localPoints_x4),
 													 _mm_mul_ps(xfB_q_s4, localPoints_y4)),
@@ -176,8 +176,8 @@ float32 SolvePositionConstraintsSIMD(int32 count, b2ContactPositionConstraintSIM
 										   xfB_p_y4);
 				//b2Vec2 clipPoint = b2Mul(xfA, pc->localPoints[index]);
 				__m128 clipPoint_x4, clipPoint_y4;
-				__m128 localPoints_x4 = _mm_loadu_ps(pc->localPoints_x+ i * j);
-				__m128 localPoints_y4 = _mm_loadu_ps(pc->localPoints_y + i * j);
+				__m128 localPoints_x4 = _mm_loadu_ps(pc->localPoints_x+ i + j);
+				__m128 localPoints_y4 = _mm_loadu_ps(pc->localPoints_y + i + j);
 				
 				clipPoint_x4 = _mm_add_ps(_mm_sub_ps(_mm_mul_ps(xfA_q_c4, localPoints_x4),
 													 _mm_mul_ps(xfA_q_s4, localPoints_y4)),
