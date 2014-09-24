@@ -40,6 +40,13 @@ struct b2ContactPositionConstraint
 	int32 pointCount;
 };
 
+/// This is an internal structure.
+struct b2Position
+{
+	b2Vec2 c;
+	float32 a;
+};
+
 struct b2ContactPositionConstraintSIMD
 {
 	float32* localPoints_x;
@@ -66,13 +73,6 @@ struct b2ContactPositionConstraintSIMD
 	float32* positionB_a;
 	b2Manifold::Type type;
 	int32 pointCount;
-};
-
-/// This is an internal structure.
-struct b2Position
-{
-	b2Vec2 c;
-	float32 a;
 };
 
 #endif

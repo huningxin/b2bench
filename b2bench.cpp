@@ -5,6 +5,7 @@
 
 #include "ContactSolverScalar.h"
 #include "ContactSolverSIMD.h"
+#include "ContactSolverVector.h"
 
 #define DEBUG 0
 
@@ -190,11 +191,71 @@ result_t bench_simd() {
   return measure(times);
 }
 
+result_t bench_vector() {
+	int32 count = COUNT;
+	b2ContactPositionConstraintVector pc_array[COUNT];
+	b2PositionVector positions[COUNT];
+
+	for (int32 i = 0; i < COUNT; ++i) {
+		b2ContactPositionConstraintVector* pc = pc_array + i;
+		pc->indexA = i;
+		pc->indexB = i;
+		pc->pointCount = 1;
+		pc->type = b2Manifold::e_faceA;
+		float32x4 tmp = {i, i, 0, 0};
+		pc->localPoints[0] = tmp;
+		pc->localNormal = tmp;
+		pc->localPoint = tmp;
+		pc->invMassA = i;
+		pc->invMassB = i;
+		pc->localCenterA = tmp;
+		pc->localCenterB = tmp;
+		pc->invIA = i;
+		pc->invIB = i;
+		pc->radiusA = i;
+		pc->radiusB = i;
+
+		b2PositionVector* p = positions + i;
+		p->c = tmp;
+		p->a = i;
+	}
+
+	printf("warming...\n");
+	for (int32 i = 0; i < WARMUP; ++i) {
+		SolvePositionConstraintsVector(count, pc_array, positions);
+  	}
+
+  	printf("benching...\n");
+	clock_t times[FRAMES]; 
+	for (int32 i = 0; i < FRAMES; ++i) {
+		clock_t start = clock();
+		for(int32 j = 0; j < ITERATIONS; ++j)
+			SolvePositionConstraintsVector(count, pc_array, positions);
+		clock_t end = clock();
+		times[i] = end - start;
+		printf("%f\n", (float)times[i]);
+	}
+
+	float32 checksum = 0.0;
+	for (int32 i = 0; i < COUNT; ++i) {
+		b2PositionVector* p = positions + i;
+		checksum += p->c[0];
+		checksum += p->c[1];
+		checksum += p->a;
+	}
+	printf("checksum: %f\n", checksum);
+
+  return measure(times);
+}
+
 int main(int argc, char** argv) {
   result_t result = bench_scalar();
   printf("Scalar benchmark complete.\n  ms/frame: %f 5th %%ile: %f 95th %%ile: %f\n", result.mean, result.pc_5th, result.pc_95th);
 
-  result_t result_simd = bench_simd();
-  printf("SIMD benchmark complete.\n  ms/frame: %f 5th %%ile: %f 95th %%ile: %f\n", result_simd.mean, result_simd.pc_5th, result_simd.pc_95th);
+  //result_t result_simd = bench_simd();
+  //printf("SIMD benchmark complete.\n  ms/frame: %f 5th %%ile: %f 95th %%ile: %f\n", result_simd.mean, result_simd.pc_5th, result_simd.pc_95th);
+
+  result_t result_vector = bench_vector();
+  printf("Vector benchmark complete.\n  ms/frame: %f 5th %%ile: %f 95th %%ile: %f\n", result_vector.mean, result_vector.pc_5th, result_vector.pc_95th);
   return 0;
 }
